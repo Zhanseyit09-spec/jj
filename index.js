@@ -7,11 +7,10 @@ const { OpenAI } = require('openai');
 const app = express();
 app.use(express.json());
 
-// Database орнатуы
 const db = new Database('jobs.db');
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Кестелерін құру
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS vacancies (
     id               INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -205,7 +204,7 @@ const M = {
   },
 };
 
-// Көмекші функциялар
+
 function getLang(chatId) {
   return (userState[chatId] && userState[chatId].lang) || 'ru';
 }
@@ -261,7 +260,7 @@ function sendLong(bot, chatId, header, items) {
   }
 }
 
-// Rate limiter
+
 const rateLimiter = new Map();
 function isRateLimited(chatId) {
   const now = Date.now();
@@ -271,7 +270,7 @@ function isRateLimited(chatId) {
   return false;
 }
 
-// Rate limiter тазалау
+
 setInterval(() => {
   const cutoff = Date.now() - 60000;
   for (const [id, ts] of rateLimiter.entries()) {
@@ -279,7 +278,7 @@ setInterval(() => {
   }
 }, 600000);
 
-// AI skill matching
+
 async function skillsMatch(s1, s2) {
   if (!s1 || !s2) return false;
   try {
@@ -295,14 +294,14 @@ async function skillsMatch(s1, s2) {
     return resp.choices[0].message.content.trim().toLowerCase().startsWith('yes');
   } catch (e) {
     console.error('OpenAI error:', e.message);
-    // Fallback: жергілік сәйкестеу
+    
     const a = s1.toLowerCase().split(',').map((x) => x.trim()).filter(Boolean);
     const b = s2.toLowerCase().split(',').map((x) => x.trim()).filter(Boolean);
     return a.some((x) => b.some((y) => x.includes(y) || y.includes(x)));
   }
 }
 
-// Вакансияларды сүзу
+
 async function filterVacancies(vacancies, state) {
   const results = [];
   for (let i = 0; i < vacancies.length; i++) {
@@ -325,7 +324,7 @@ async function filterVacancies(vacancies, state) {
     results.push(v);
   }
 
-  // Жалақы бойынша сортқы
+  
   results.sort((a, b) => {
     const getNum = (s) => parseInt((s || '').replace(/\D/g, '') || '0', 10);
     return getNum(b.salary) - getNum(a.salary);
@@ -333,7 +332,7 @@ async function filterVacancies(vacancies, state) {
   return results;
 }
 
-// Telegram бот құру
+
 const bot = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
 
 function showLangMenu(chatId) {
@@ -352,20 +351,20 @@ function showMainMenu(chatId, lang) {
   }).catch((err) => console.error('Send error:', err));
 }
 
-// /start команда
+
 bot.onText(/\/start/, (msg) => {
   delete userState[msg.chat.id];
   showLangMenu(msg.chat.id);
 });
 
-// /cancel команда
+
 bot.onText(/\/cancel/, (msg) => {
   const lang = getLang(msg.chat.id);
   delete userState[msg.chat.id];
   bot.sendMessage(msg.chat.id, M[lang].cancelled).catch((err) => console.error('Send error:', err));
 });
 
-// Барлық хабарламалар
+
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
   const text = (msg.text || '').trim();
@@ -377,7 +376,7 @@ bot.on('message', async (msg) => {
     return;
   }
 
-  // Тіл таңдау
+  
   if (text === '🇰🇿 Қазақша') { userState[chatId] = { lang: 'kz' }; showMainMenu(chatId, 'kz'); return; }
   if (text === '🇷🇺 Русский')  { userState[chatId] = { lang: 'ru' }; showMainMenu(chatId, 'ru'); return; }
   if (text === '🇬🇧 English')  { userState[chatId] = { lang: 'en' }; showMainMenu(chatId, 'en'); return; }
@@ -405,14 +404,14 @@ bot.on('message', async (msg) => {
     return;
   }
 
-  // Job seeker ағымы
+  
   if (text === m.seeker) {
     userState[chatId] = { lang: lang, role: 'seeker', step: 'name' };
     bot.sendMessage(chatId, m.name, cancelKb(m)).catch((err) => console.error('Send error:', err));
     return;
   }
 
-  // Employer ағымы
+  
   if (text === m.employer) {
     userState[chatId] = { lang: lang, role: 'employer', step: 'title' };
     bot.sendMessage(chatId, m.vtitle, cancelKb(m)).catch((err) => console.error('Send error:', err));
@@ -423,7 +422,7 @@ bot.on('message', async (msg) => {
   if (state.role === 'employer') { await employerFlow(chatId, text, state, m); return; }
 });
 
-// Job Seeker ағымы
+
 async function seekerFlow(chatId, text, state, m) {
   const lang = state.lang;
 
@@ -528,7 +527,7 @@ async function seekerFlow(chatId, text, state, m) {
   }
 }
 
-// Employer ағымы
+
 async function employerFlow(chatId, text, state, m) {
   const lang = state.lang;
 

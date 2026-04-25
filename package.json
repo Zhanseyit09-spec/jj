@@ -1,0 +1,12 @@
+{
+  "name": "tg-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "Index.js",
+  "scripts": {
+    "start": "node Index.js"
+  },
+  "dependencies": {
+    "telegraf": "latest"
+  }
+}

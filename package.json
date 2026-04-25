@@ -1,15 +1,15 @@
 {
   "name": "jj-bot",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "node-telegram-bot-api": "^0.66.0"
-  },
-  "engines": {
-    "node": "22.x"
+    "express": "latest",
+    "better-sqlite3": "latest",
+    "node-telegram-bot-api": "latest",
+    "openai": "latest",
+    "dotenv": "latest"
   }
 }
